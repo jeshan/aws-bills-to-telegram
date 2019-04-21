@@ -145,6 +145,7 @@ Resources:
               - !Sub arn:aws:sns:*:${AWS::AccountId}:${EventsTopicName}
           - Action:
               - events:PutRule
+              - events:DescribeRule
               - events:DeleteRule
             Effect: Allow
             Resource: !Sub arn:aws:events:*:${AWS::AccountId}:rule/${ProjectName}-*
