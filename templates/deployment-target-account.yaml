@@ -143,6 +143,11 @@ Resources:
             Effect: Allow
             Resource:
               - !Sub arn:aws:sns:*:${AWS::AccountId}:${EventsTopicName}
+          - Action:
+              - events:PutRule
+              - events:DeleteRule
+            Effect: Allow
+            Resource: !Sub arn:aws:events:*:${AWS::AccountId}:rule/${ProjectName}-*
         Version: '2012-10-17'
     Type: AWS::IAM::ManagedPolicy
 
