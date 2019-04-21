@@ -166,7 +166,7 @@ Resources:
             Effect: Allow
             Resource:
               - !Sub <%text>arn:aws:ssm:us-east-1:${AWS::AccountId}:parameter/bot-token</%text>
-              - !Sub <%text>arn:aws:ssm:us-east-1:${AWS::AccountId}:parameter/${ProjectName}/*</%text>
+              - !Sub <%text>arn:aws:ssm:us-east-1:${AWS::AccountId}:parameter/bills-to-telegram/*</%text>
           - Action:
               - iam:ListPolicyVersions
               - iam:CreatePolicy
