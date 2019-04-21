@@ -1,0 +1,6 @@
+template_path: deployment-pipeline.yaml
+
+parameters:
+  ProjectName: aws-bills-to-telegram
+  PrivateBucket: jeshan-oss-private-files
+  PublicBucket: jeshan-oss-public-files

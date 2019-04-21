@@ -1,0 +1,187 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Deployment pipeline for aws-bills-to-telegram'
+
+Parameters:
+  Repo:
+    Type: String
+    Default: jeshan/aws-bills-to-telegram
+  ProjectName:
+    Type: String
+  PublicBucket:
+    Type: String
+  PrivateBucket:
+    Type: String
+
+Resources:
+  Project:
+    Properties:
+      Artifacts:
+        Type: NO_ARTIFACTS
+      BadgeEnabled: true
+      Cache:
+        Type: NO_CACHE
+      Description: !Sub deploys ${ProjectName} to all of my accounts
+      EncryptionKey: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/s3
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/python:3.6.5
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+        EnvironmentVariables:
+          - Name: PRIVATE_BUCKET
+            Value: !Ref PrivateBucket
+          - Name: REPO
+            Value: !Ref Repo
+          - Name: ACCOUNT_ID
+            Value: !Ref AWS::AccountId
+          - Name: PROJECT_NAME
+            Value: !Ref ProjectName
+      Name: !Sub deploy-${ProjectName}
+      ServiceRole: !GetAtt 'CodeBuildServiceRole.Arn'
+      Source:
+        GitCloneDepth: 1
+        InsecureSsl: false
+        Location: !Sub https://github.com/${Repo}
+        ReportBuildStatus: false
+        Type: GITHUB
+        BuildSpec: |
+          version: 0.2
+
+          phases:
+            pre_build:
+              commands:
+                - pip3 install pipenv
+                - pipenv install --system
+            build:
+              commands:
+                - aws s3 sync s3://${PRIVATE_BUCKET}/github.com/${REPO}/master .
+                - python generate-config.py
+                - python configure-aws-cli.py ${REPO}
+                - sceptre --no-colour launch -y app
+                - chmod +x upload-public-templates.sh && ./upload-public-templates.sh
+      TimeoutInMinutes: 15
+      Triggers:
+        Webhook: true
+        FilterGroups:
+          - - Type: EVENT
+              Pattern: PUSH
+    Type: AWS::CodeBuild::Project
+
+  CodeBuildServiceRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+        - !Ref LogManagedPolicy
+        - !Ref DeployManagedPolicy
+        - !Ref TemplateManagedPolicy
+      Path: /service-role/
+      RoleName: !Sub ${ProjectName}-deployer
+    Type: AWS::IAM::Role
+
+  LogManagedPolicy:
+    Properties:
+      Description: Policy used in trust relationship with CodeBuild
+      Path: /service-role/
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: '*'
+        Version: '2012-10-17'
+    Type: AWS::IAM::ManagedPolicy
+
+  DeployManagedPolicy:
+    Properties:
+      Description: Policy used in trust relationship with CodeBuild
+      Path: /service-role/
+      PolicyDocument:
+        Statement:
+          - Action:
+              - cloudformation:DescribeStackEvents
+              - cloudformation:CreateStack
+              - cloudformation:DescribeStackResource
+              - cloudformation:DescribeStackResources
+              - cloudformation:DeleteStack
+              - cloudformation:UpdateStack
+              - cloudformation:GetStackPolicy
+            Effect: Allow
+            Resource: !Sub arn:aws:cloudformation:*:*:stack/${ProjectName}-*/*
+          - Action:
+              - cloudformation:DescribeStacks
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - cloudformation:CreateChangeSet
+              - cloudformation:DeleteChangeSet
+              - cloudformation:DescribeChangeSet
+              - cloudformation:ExecuteChangeSet
+              - cloudformation:ListChangeSets
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - s3:ListBucket
+            Effect: Allow
+            Resource: !Sub arn:aws:s3:::${PrivateBucket}
+          - Action:
+              - s3:GetObject
+            Effect: Allow
+            Resource: !Sub arn:aws:s3:::${PrivateBucket}/*
+          - Action:
+              - s3:PutObject
+            Effect: Allow
+            Resource: !Sub arn:aws:s3:::${PublicBucket}/*
+          - Action:
+              - codebuild:UpdateProject
+              - codebuild:DeleteProject
+            Effect: Allow
+            Resource: !Sub arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/deploy-${ProjectName}
+          - Effect: Allow
+            Action:
+              - iam:GetRole
+            Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/*
+        Version: '2012-10-17'
+    Type: AWS::IAM::ManagedPolicy
+
+  TemplateManagedPolicy:
+    Properties:
+      Description: Policy used in trust relationship with CodeBuild
+      Path: /service-role/
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ssm:GetParameter
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:ssm:us-east-1:${AWS::AccountId}:parameter/bot-token
+              - !Sub arn:aws:ssm:us-east-1:${AWS::AccountId}:parameter/${ProjectName}/*
+          - Action:
+              - iam:ListPolicyVersions
+              - iam:CreatePolicy
+              - iam:DeletePolicy
+              - iam:GetPolicy
+              - iam:CreatePolicyVersion
+              - iam:DeletePolicyVersion
+              - iam:SetDefaultPolicyVersion
+              - iam:GetPolicyVersion
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/service-role/${ProjectName}-*
+        Version: '2012-10-17'
+    Type: AWS::IAM::ManagedPolicy
+
+Outputs:
+  CodeBuildServiceRole:
+    Value: !Sub '${CodeBuildServiceRole.Arn}'

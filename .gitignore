@@ -1,0 +1,8 @@
+config/
+.idea
+!/config/app/deployment/
+!/config/app/dev/
+!/config/config.yaml
+configure-aws-cli.py
+upload-private-config.sh
+upload-public-templates.sh

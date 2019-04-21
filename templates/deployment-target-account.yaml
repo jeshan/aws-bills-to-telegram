@@ -1,0 +1,173 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: 'deploy this in target account so that your codebuild project has permissions to deploy to it'
+
+Parameters:
+  DeploymentAccount:
+    Type: String
+  DlqName:
+    Type: String
+  EventsTopicName:
+    Type: String
+  ProjectName:
+    Type: String
+
+Resources:
+  FnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Ref FnPolicy
+
+  FnPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - iam:GetRole
+            Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/*
+          - Effect: Allow
+            Action:
+              - cloudformation:UpdateStack
+              - cloudformation:DescribeStacks
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Sub arn:aws:sns:*:${AWS::AccountId}:${EventsTopicName}
+          - Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${DlqName}
+          - Effect: Allow
+            Action:
+              - ce:GetCostAndUsage
+            Resource: !Sub arn:aws:ce:us-east-1:${AWS::AccountId}:/GetCostAndUsage
+          - Effect: Allow
+            Action:
+              - cloudwatch:GetMetricWidgetImage
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${DlqName}
+        Version: '2012-10-17'
+
+  DeployerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-target
+      ManagedPolicyArns:
+        - !Ref AppManagedPolicy
+        - !Ref DeployManagedPolicy
+        - !Ref TemplateManagedPolicy
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${DeploymentAccount}:role/service-role/${ProjectName}-deployer
+            Action: sts:AssumeRole
+
+  DeployManagedPolicy:
+    Properties:
+      Path: /service-role/
+      PolicyDocument:
+        Statement:
+          - Action:
+              - cloudformation:DescribeStackEvents
+              - cloudformation:CreateStack
+              - cloudformation:DescribeStackResource
+              - cloudformation:DescribeStackResources
+              - cloudformation:DeleteStack
+              - cloudformation:UpdateStack
+              - cloudformation:GetStackPolicy
+            Effect: Allow
+            Resource: !Sub arn:aws:cloudformation:*:${AWS::AccountId}:stack/${ProjectName}-*/*
+          - Action:
+              - cloudformation:DescribeStacks
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - cloudformation:CreateChangeSet
+              - cloudformation:DeleteChangeSet
+              - cloudformation:DescribeChangeSet
+              - cloudformation:ExecuteChangeSet
+              - cloudformation:ListChangeSets
+            Effect: Allow
+            Resource: '*'
+        Version: '2012-10-17'
+    Type: AWS::IAM::ManagedPolicy
+
+  AppManagedPolicy:
+    Properties:
+      Path: /service-role/
+      PolicyDocument:
+        Statement:
+          - Action:
+              - lambda:CreateFunction
+              - lambda:DeleteFunction
+              - lambda:UpdateFunctionCode
+              - lambda:GetFunctionConfiguration
+              - lambda:UpdateFunctionConfiguration
+              - lambda:AddPermission
+              - lambda:RemovePermission
+            Effect: Allow
+            Resource: !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${ProjectName}-*'
+          - Action:
+              - iam:PassRole
+              - iam:GetRole
+            Effect: Allow
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${ProjectName}-*'
+          - Action:
+              - sns:Subscribe
+              - sns:Unsubscribe
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:sns:*:${AWS::AccountId}:${EventsTopicName}
+        Version: '2012-10-17'
+    Type: AWS::IAM::ManagedPolicy
+
+  TemplateManagedPolicy:
+    Properties:
+      Path: /service-role/
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:ListPolicyVersions
+              - iam:CreatePolicy
+              - iam:DeletePolicy
+              - iam:GetPolicy
+              - iam:CreatePolicyVersion
+              - iam:DeletePolicyVersion
+              - iam:SetDefaultPolicyVersion
+              - iam:GetPolicyVersion
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/service-role/${ProjectName}-*
+        Version: '2012-10-17'
+    Type: AWS::IAM::ManagedPolicy
+
+Outputs:
+  TargetRole:
+    Value: !Sub '${DeployerRole.Arn}'
+  FnRole:
+    Value: !Sub '${FnRole.Arn}'

@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'get current monthly bill'
+
+Parameters:
+  DlqName:
+    Type: String
+  IntervalHours:
+    Type: Number
+    AllowedValues: [6, 12, 24, 72, 168]
+    Default: 24
+    Description: from once every 6 hours to once a week
+  Role:
+    Type: String
+  TelegramBotToken:
+    Type: String
+    NoEcho: true
+  TelegramChatId:
+    Type: String
+
+Resources:
+  Fn:
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: !Sub |
+        from botocore.vendored import requests
+        from calendar import monthrange
+        from datetime import datetime
+        from urllib.parse import quote_plus
+        import boto3
+
+        def handler(event, context):
+          print('event', event)
+          client = boto3.client('ce')
+          today = datetime.today()
+          first_of_month = today.replace(day=1, hour=0, minute=0, second=0)
+          year = today.year
+          month = today.month
+          last_of_month = today.replace(day=monthrange(year, month)[1], hour=23, minute=59, second=59)
+          start = f'{first_of_month:%Y-%m-%d}'
+          end = f'{last_of_month:%Y-%m-%d}'
+          results = client.get_cost_and_usage(Granularity='MONTHLY', TimePeriod={'Start': start, 'End': end}, Metrics=['AmortizedCost'])['ResultsByTime']
+          cost = results[0]['Total']['AmortizedCost']
+
+          account = event.get('account') or boto3.client('sts').get_caller_identity()['Account']
+          message = f"Your current month-to-date balance for account {account} from {start} to {end} is {round(float(cost['Amount']), 2)} {cost['Unit']}"
+          message += f'\nLink to bill: https://console.aws.amazon.com/billing/home?#/bills?year={year}&month={month}'
+
+          img = boto3.client('cloudwatch').get_metric_widget_image(MetricWidget='{"metrics": [["AWS/Billing","EstimatedCharges", "Currency", "USD"]], "start": "-PT168H", "stat": "Maximum", "period": 21600, "title": "${AWS::AccountId}"}')['MetricWidgetImage']
+          img_response = requests.post('https://api.telegram.org/bot${TelegramBotToken}/sendPhoto', files={'caption': 'Estimated charges over the past week', 'photo': img}, data={'chat_id': ${TelegramChatId}}).json()
+          print(img_response)
+          requests.post('https://api.telegram.org/bot${TelegramBotToken}/sendMessage', json={'chat_id': ${TelegramChatId}, 'text': message})
+      Handler: index.handler
+      Timeout: 30
+      MemorySize: 128
+      Role: !Ref Role
+      Runtime: python3.7
+      Events:
+        Cw:
+          Type: Schedule
+          Properties:
+            Schedule: !Sub rate(${IntervalHours} hours)

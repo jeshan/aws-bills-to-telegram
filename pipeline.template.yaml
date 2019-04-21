@@ -1,0 +1,5 @@
+template_path: deployment-pipeline.yaml
+
+parameters:
+  PrivateBucket: ${PRIVATE_BUCKET}
+  PublicBucket: ${PUBLIC_BUCKET}

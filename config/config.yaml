@@ -1,0 +1,5 @@
+project_code: aws-bills-to-telegram
+region: us-east-1
+
+dlq_name: lambda-default-dlq
+events_topic_name: cloudformation-stack-events
