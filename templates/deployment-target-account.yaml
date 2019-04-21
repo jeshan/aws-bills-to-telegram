@@ -147,6 +147,8 @@ Resources:
               - events:PutRule
               - events:DescribeRule
               - events:DeleteRule
+              - events:PutTargets
+              - events:RemoveTargets
             Effect: Allow
             Resource: !Sub arn:aws:events:*:${AWS::AccountId}:rule/${ProjectName}-*
         Version: '2012-10-17'
