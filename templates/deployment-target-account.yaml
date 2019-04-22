@@ -166,7 +166,7 @@ Resources:
               - iam:GetPolicyVersion
             Effect: Allow
             Resource:
-              - !Sub arn:aws:iam::${AWS::AccountId}:policy/service-role/${ProjectName}-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/${ProjectName}-*
         Version: '2012-10-17'
     Type: AWS::IAM::ManagedPolicy
 
