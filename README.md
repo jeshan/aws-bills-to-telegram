@@ -2,6 +2,8 @@
 
 Regularly sends you your current balance for your various AWS accounts to a (private) Telegram group.
 
+![Demo](screenshot.png)
+
 If needed, you can create a virtual env with `pipenv install`
 
 The build process generates boilerplate configuration with `python generate-config.py`.
