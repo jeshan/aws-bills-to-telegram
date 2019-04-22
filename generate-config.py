@@ -80,7 +80,6 @@ parameters:
 region: {region}
 
 parameters:
-  DlqName: {{{{stack_group_config.dlq_name}}}}
   IntervalHours: '24'
   Role: !stack_output app/{env}/base.yaml::FnRole
   TelegramBotToken: !aws ssm::get_parameter::'Name':'bot-token','WithDecryption':True::Parameter.Value::us-east-1

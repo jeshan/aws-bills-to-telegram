@@ -3,8 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: 'get current monthly bill'
 
 Parameters:
-  DlqName:
-    Type: String
   IntervalHours:
     Type: Number
     AllowedValues: [6, 12, 24, 72, 168]
