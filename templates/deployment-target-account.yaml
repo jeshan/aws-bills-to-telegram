@@ -85,7 +85,6 @@ Resources:
 
   DeployManagedPolicy:
     Properties:
-      Path: /service-role/
       PolicyDocument:
         Statement:
           - Action:
@@ -119,7 +118,6 @@ Resources:
 
   AppManagedPolicy:
     Properties:
-      Path: /service-role/
       PolicyDocument:
         Statement:
           - Action:
@@ -156,7 +154,6 @@ Resources:
 
   TemplateManagedPolicy:
     Properties:
-      Path: /service-role/
       PolicyDocument:
         Statement:
           - Action:

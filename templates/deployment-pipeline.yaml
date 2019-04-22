@@ -80,14 +80,12 @@ Resources:
         - !Ref LogManagedPolicy
         - !Ref DeployManagedPolicy
         - !Ref TemplateManagedPolicy
-      Path: /service-role/
       RoleName: !Sub ${ProjectName}-deployer
     Type: AWS::IAM::Role
 
   LogManagedPolicy:
     Properties:
       Description: Policy used in trust relationship with CodeBuild
-      Path: /service-role/
       PolicyDocument:
         Statement:
           - Action:
@@ -102,7 +100,6 @@ Resources:
   DeployManagedPolicy:
     Properties:
       Description: Policy used in trust relationship with CodeBuild
-      Path: /service-role/
       PolicyDocument:
         Statement:
           - Action:
@@ -158,7 +155,6 @@ Resources:
   TemplateManagedPolicy:
     Properties:
       Description: Policy used in trust relationship with CodeBuild
-      Path: /service-role/
       PolicyDocument:
         Statement:
           - Action:
@@ -178,7 +174,7 @@ Resources:
               - iam:GetPolicyVersion
             Effect: Allow
             Resource:
-              - !Sub arn:aws:iam::${AWS::AccountId}:policy/service-role/${ProjectName}-*
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/${ProjectName}-*
         Version: '2012-10-17'
     Type: AWS::IAM::ManagedPolicy
 
