@@ -1,5 +1,8 @@
+import sys
 from glob import glob
 from subprocess import check_output, CalledProcessError
+
+fail_count = 0
 
 
 def run(command):
@@ -9,6 +12,8 @@ def run(command):
         return output
     except CalledProcessError as exc:
         print("Status : FAIL", exc.returncode, exc.output.decode('utf-8'))
+        global fail_count
+        fail_count += 1
 
 
 def go():
@@ -21,3 +26,4 @@ def go():
 
 if __name__ == '__main__':
     go()
+    sys.exit(fail_count)
