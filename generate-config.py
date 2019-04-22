@@ -69,7 +69,7 @@ parameters:
 parameters:
   DeploymentAccount: !environment_variable ACCOUNT_ID
   DlqName: {{{{stack_group_config.dlq_name}}}}
-  EventsTopicName: {{{{stack_group_config.events_topic_name}}}}
+  StackEventsTopic: {{{{stack_group_config.events_topic_name}}}}
   ProjectName: {project_name}
 """)
 
