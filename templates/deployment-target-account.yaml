@@ -61,10 +61,6 @@ Resources:
             Action:
               - cloudwatch:GetMetricWidgetImage
             Resource: '*'
-          - Effect: Allow
-            Action:
-              - sns:Publish
-            Resource: !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${DlqName}
         Version: '2012-10-17'
 
   DeployerRole:

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 echo "On branch $BRANCH"
