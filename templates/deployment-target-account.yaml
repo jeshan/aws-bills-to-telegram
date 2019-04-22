@@ -46,11 +46,6 @@ Resources:
             Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/*
           - Effect: Allow
             Action:
-              - cloudformation:UpdateStack
-              - cloudformation:DescribeStacks
-            Resource: '*'
-          - Effect: Allow
-            Action:
               - sns:Publish
             Resource: !Sub arn:aws:sns:*:${AWS::AccountId}:${StackEventsTopic}
           - Effect: Allow
