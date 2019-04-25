@@ -113,6 +113,17 @@ Resources:
             Effect: Allow
             Resource:
               - !Sub arn:aws:iam::${AWS::AccountId}:policy/${ProjectName}-*
+          - Action:
+              - iam:CreateRole
+              - iam:DeleteRole
+              - iam:UpdateRole
+              - iam:PutRolePolicy
+              - iam:AttachRolePolicy
+              - iam:DetachRolePolicy
+              - iam:DeleteRolePolicy
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/${ProjectName}-*
         Version: '2012-10-17'
     Type: AWS::IAM::ManagedPolicy
 
