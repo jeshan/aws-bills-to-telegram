@@ -8,7 +8,7 @@ If needed, you can create a virtual env with `pipenv install`
 
 The build process generates boilerplate configuration with `python generate-config.py`.
 
-Deploy this in all regions in one go with:
+Deploy this in all accounts in one go with:
 
 `sceptre launch -y app`
 
