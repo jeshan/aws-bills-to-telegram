@@ -68,7 +68,6 @@ parameters:
 
 parameters:
   DeploymentAccount: !environment_variable ACCOUNT_ID
-  DlqName: {{{{stack_group_config.dlq_name}}}}
   StackEventsTopic: {{{{stack_group_config.events_topic_name}}}}
   ProjectName: {project_name}
 """)
@@ -81,7 +80,8 @@ region: {region}
 
 parameters:
   IntervalHours: '24'
-  Role: !stack_output app/{env}/base.yaml::FnRole
+  DlqName: {{{{stack_group_config.dlq_name}}}}
+  StackEventsTopic: {{{{stack_group_config.events_topic_name}}}}
   TelegramBotToken: !aws ssm::get_parameter::'Name':'bot-token','WithDecryption':True::Parameter.Value::us-east-1
   TelegramChatId: !aws ssm::get_parameter::'Name':'/bills-to-telegram/chat-id'::Parameter.Value::us-east-1
 """)
