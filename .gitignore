@@ -6,3 +6,4 @@ config/
 configure-aws-cli.py
 upload-private-config.sh
 upload-public-templates.sh
+templates/packaged-template.yaml

@@ -2,7 +2,14 @@
 
 Regularly sends you your current balance for your various AWS accounts to a (private) Telegram group.
 
-![Demo](screenshot.png)
+![Demo](https://raw.githubusercontent.com/jeshan/aws-bills-to-telegram/master/screenshot.png)
+
+
+## Deploying via the Serverless Repo
+Enter a Telegram bot token and a chat ID (group ID or your own user).
+Also, set IntervalHours to determine interval at which the notifications are sent.
+
+## Deploying via sceptre
 
 If needed, you can create a virtual env with `pipenv install`
 

@@ -22,6 +22,19 @@ Parameters:
   TelegramChatId:
     Type: String
 
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: aws-bills-to-telegram
+    Description: Regularly sends you your current balance to a (private) Telegram group.
+    Author: jeshan
+    SpdxLicenseId: BSD-2-Clause
+    LicenseUrl: ../LICENCE.txt
+    ReadmeUrl: ../README.md
+    Labels: ['telegram']
+    HomePageUrl: https://github.com/jeshan/aws-bills-to-telegram
+    SemanticVersion: '0.1.0'
+    SourceCodeUrl: https://github.com/jeshan/aws-bills-to-telegram
+
 Resources:
   Fn:
     Type: AWS::Serverless::Function
