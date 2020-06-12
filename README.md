@@ -34,6 +34,14 @@ aws ssm put-parameter --name /bills-to-telegram/chat-id --type String --value $Y
 sceptre launch -y app
 ``` 
 
+This is what will get deployed:
+
+![](/diagram-app.png)
+
+![](/diagram-base.png)
+
+![](/diagram-deployment.png)
+
 ## Adding private sceptre configuration
 To generate sceptre configuration for a private environment, you can run something like:
 `python generate-config.py production`
