@@ -42,6 +42,8 @@ This is what will get deployed:
 
 ![](/diagram-deployment.png)
 
+*Images automatically generated with [cfnbuddy](https://www.cfnbuddy.com)*
+
 ## Adding private sceptre configuration
 To generate sceptre configuration for a private environment, you can run something like:
 `python generate-config.py production`
